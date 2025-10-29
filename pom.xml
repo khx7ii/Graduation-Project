@@ -134,6 +134,7 @@
 				</configuration>
 			</plugin>
 
+			
 			<!-- ✅ Spring Boot plugin -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
