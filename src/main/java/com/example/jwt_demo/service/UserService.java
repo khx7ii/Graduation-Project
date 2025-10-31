@@ -38,8 +38,8 @@ public class UserService implements UserDetailsService {
 
     // ✅ تسجيل مستخدم جديد (MongoDB)
     public boolean registerUser(String username, String email, String password) {
-        if (userRepository.findByUsername(username).isPresent()) {
-            return false; // Username already exists
+        if (userRepository.findByEmail(email).isPresent()) {
+            return false; // ❌ Email already exists
         }
 
         String hashedPassword = passwordEncoder.encode(password);
@@ -52,6 +52,7 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
         return true;
     }
+
 
     // ✅ تسجيل الدخول
     public boolean loginUser(String username, String password) {
@@ -78,6 +79,8 @@ public class UserService implements UserDetailsService {
         user.setRefreshTokenHash(hash);
         user.setRefreshTokenExpiry(new Date(System.currentTimeMillis() + validMillis));
         userRepository.save(user);
+
+
     }
 
     // ✅ التحقق من صلاحية refresh token

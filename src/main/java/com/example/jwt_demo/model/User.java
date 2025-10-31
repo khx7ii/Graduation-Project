@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
@@ -15,11 +16,14 @@ import java.util.Date;
 public class User {
     @Id
     private String id;
-    private String username;
+
+    private String username; // ✅ مجرد display name
+
+    @Indexed(unique = true) // ✅ يجعل الإيميل فريد في الـ collection
     private String email;
+
     private String password;
 
-    // Refresh token fields
     private String refreshTokenHash;
     private Date refreshTokenExpiry;
 

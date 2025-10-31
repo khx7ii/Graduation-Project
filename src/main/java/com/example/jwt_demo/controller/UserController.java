@@ -30,10 +30,12 @@ public class UserController {
         String password = body.get("password");
 
         boolean ok = userService.registerUser(username, email, password);
-        if (!ok) return ResponseEntity.badRequest().body(Map.of("error", "Username already exists"));
+        if (!ok) return ResponseEntity.badRequest().body(Map.of("error", " Email already exists"));
+
 
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
+
 
     // ---------------------- LOGIN ----------------------
     @PostMapping("/login")
