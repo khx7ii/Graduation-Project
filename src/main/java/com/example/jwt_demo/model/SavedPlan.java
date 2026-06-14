@@ -16,6 +16,7 @@ public class SavedPlan {
 
     private String userId;
     private String title;
+    private String category;
     private Object data;
     private LocalDateTime savedAt;
 

@@ -1,0 +1,412 @@
+{
+  "info": {
+    "name": "ExploreEgypt Backend - AZURE (Deployed)",
+    "description": "Full endpoint collection against the deployed Azure App Service. baseUrl is set to the deployed App Service (https://grad-backend-api-d2atfnd0d6fwdrdb.switzerlandnorth-01.azurewebsites.net). Then run 'Auth > Register' once, 'Auth > Login' to capture accessToken, 'Home > Get Home' to capture a suggestedPlanId + landmarkId, 'Plans > Save Plan' for planId, 'Chats > Send Message' for conversationId.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{accessToken}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://grad-backend-api-d2atfnd0d6fwdrdb.switzerlandnorth-01.azurewebsites.net" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "planId", "value": "" },
+    { "key": "conversationId", "value": "" },
+    { "key": "suggestedPlanId", "value": "" },
+    { "key": "landmarkId", "value": "" },
+    { "key": "uploadedUrl", "value": "" },
+    { "key": "category", "value": "HISTORICAL" },
+    { "key": "email", "value": "deploytest@example.com" },
+    { "key": "password", "value": "Passw0rd!" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/register", "host": ["{{baseUrl}}"], "path": ["register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"Deploy Tester\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "if (json.refreshToken) pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "pm.test('has accessToken', () => pm.expect(json.accessToken).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/login", "host": ["{{baseUrl}}"], "path": ["login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "if (json.refreshToken) pm.collectionVariables.set('refreshToken', json.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/refresh", "host": ["{{baseUrl}}"], "path": ["refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/logout", "host": ["{{baseUrl}}"], "path": ["logout"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "forgot-password"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "reset-password"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPassw0rd!\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/profile", "host": ["{{baseUrl}}"], "path": ["profile"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/profile", "host": ["{{baseUrl}}"], "path": ["profile"] },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"Deploy Tester\",\n  \"bio\": \"Exploring Egypt\",\n  \"userImage\": \"{{uploadedUrl}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Upload Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.url) pm.collectionVariables.set('uploadedUrl', json.url);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/uploads", "host": ["{{baseUrl}}"], "path": ["api", "uploads"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [] },
+                { "key": "visibility", "value": "public", "type": "text" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Home",
+      "item": [
+        {
+          "name": "Get Home",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.suggestedPlans && json.suggestedPlans.length) pm.collectionVariables.set('suggestedPlanId', json.suggestedPlans[0].id);",
+                  "if (json.trendingExpeditions && json.trendingExpeditions.length) pm.collectionVariables.set('landmarkId', json.trendingExpeditions[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/home", "host": ["{{baseUrl}}"], "path": ["api", "home"] }
+          }
+        },
+        {
+          "name": "Get Suggested Plan Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/home/suggested-plans/{{suggestedPlanId}}", "host": ["{{baseUrl}}"], "path": ["api", "home", "suggested-plans", "{{suggestedPlanId}}"] }
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/home/categories", "host": ["{{baseUrl}}"], "path": ["api", "home", "categories"] }
+          }
+        },
+        {
+          "name": "Get Plans By Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/home/plans/{{category}}", "host": ["{{baseUrl}}"], "path": ["api", "home", "plans", "{{category}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chats",
+      "item": [
+        {
+          "name": "Send Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('conversationId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/chats", "host": ["{{baseUrl}}"], "path": ["api", "chats"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "message", "value": "Plan me a 3 day trip to Cairo", "type": "text" },
+                { "key": "type", "value": "plan", "type": "text" },
+                { "key": "conversationId", "value": "", "type": "text", "disabled": true },
+                { "key": "files", "type": "file", "src": [], "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Chats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/chats", "host": ["{{baseUrl}}"], "path": ["api", "chats"] }
+          }
+        },
+        {
+          "name": "Get Conversation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/chats/{{conversationId}}", "host": ["{{baseUrl}}"], "path": ["api", "chats", "{{conversationId}}"] }
+          }
+        },
+        {
+          "name": "Regenerate Last Reply",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/chats/{{conversationId}}/regenerate", "host": ["{{baseUrl}}"], "path": ["api", "chats", "{{conversationId}}", "regenerate"] }
+          }
+        },
+        {
+          "name": "Delete Conversation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/chats/{{conversationId}}", "host": ["{{baseUrl}}"], "path": ["api", "chats", "{{conversationId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Plans",
+      "item": [
+        {
+          "name": "Save Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('planId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/plans/save", "host": ["{{baseUrl}}"], "path": ["api", "plans", "save"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Cairo Weekend\",\n  \"data\": {\n    \"title\": \"Cairo Weekend\",\n    \"days\": [\n      {\n        \"total_cost_usd\": 45,\n        \"total_cost_egp\": 2205,\n        \"activities\": [\n          {\n            \"time\": \"09:00 AM\",\n            \"title\": \"Pyramids of Giza\",\n            \"description\": \"Ancient wonder\",\n            \"cost_usd\": 20,\n            \"cost_egp\": 980,\n            \"lat\": 29.9792,\n            \"lng\": 31.1342,\n            \"category\": \"attraction\"\n          }\n        ]\n      }\n    ]\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get My Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/plans", "host": ["{{baseUrl}}"], "path": ["api", "plans"] }
+          }
+        },
+        {
+          "name": "Edit Plan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}/edit", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}", "edit"] },
+            "body": { "mode": "raw", "raw": "{\n  \"instruction\": \"Add a Nile dinner cruise on day 1\"\n}" }
+          }
+        },
+        {
+          "name": "Add Place To Plan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}/places", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}", "places"] },
+            "body": { "mode": "raw", "raw": "{\n  \"dayIndex\": 0,\n  \"placeId\": \"{{landmarkId}}\",\n  \"time\": \"03:00 PM\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Place From Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}/places", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}", "places"] },
+            "body": { "mode": "raw", "raw": "{\n  \"dayIndex\": 0,\n  \"activityIndex\": 0\n}" }
+          }
+        },
+        {
+          "name": "Activate Plan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}/activate", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}", "activate"] },
+            "body": { "mode": "raw", "raw": "{\n  \"startDate\": \"2026-07-01\"\n}" }
+          }
+        },
+        {
+          "name": "Deactivate Plan",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}/deactivate", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}", "deactivate"] }
+          }
+        },
+        {
+          "name": "Delete Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favorites",
+      "item": [
+        {
+          "name": "Add Favorite",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/favorites/{{suggestedPlanId}}", "host": ["{{baseUrl}}"], "path": ["api", "favorites", "{{suggestedPlanId}}"] }
+          }
+        },
+        {
+          "name": "Get Favorites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/favorites", "host": ["{{baseUrl}}"], "path": ["api", "favorites"] }
+          }
+        },
+        {
+          "name": "Remove Favorite",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/favorites/{{suggestedPlanId}}", "host": ["{{baseUrl}}"], "path": ["api", "favorites", "{{suggestedPlanId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

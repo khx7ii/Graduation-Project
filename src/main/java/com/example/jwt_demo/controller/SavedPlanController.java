@@ -2,13 +2,19 @@ package com.example.jwt_demo.controller;
 
 import com.example.jwt_demo.dto.AIReply;
 import com.example.jwt_demo.dto.ActivatePlanRequest;
+import com.example.jwt_demo.dto.AddPlaceRequest;
+import com.example.jwt_demo.dto.DeletePlaceRequest;
 import com.example.jwt_demo.dto.EditPlanRequest;
+import com.example.jwt_demo.dto.PlanSummary;
 import com.example.jwt_demo.dto.SavePlanRequest;
 import com.example.jwt_demo.exception.AIServiceException;
+import com.example.jwt_demo.model.Landmark;
 import com.example.jwt_demo.model.SavedPlan;
 import com.example.jwt_demo.model.User;
+import com.example.jwt_demo.repository.LandmarkRepository;
 import com.example.jwt_demo.repository.SavedPlanRepository;
 import com.example.jwt_demo.service.AIService;
+import com.example.jwt_demo.service.PlanCategoryClassifier;
 import com.example.jwt_demo.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +26,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,13 +40,19 @@ public class SavedPlanController {
     private final SavedPlanRepository savedPlanRepository;
     private final UserService userService;
     private final AIService aiService;
+    private final LandmarkRepository landmarkRepository;
+    private final PlanCategoryClassifier categoryClassifier;
 
     public SavedPlanController(SavedPlanRepository savedPlanRepository,
                                UserService userService,
-                               AIService aiService) {
+                               AIService aiService,
+                               LandmarkRepository landmarkRepository,
+                               PlanCategoryClassifier categoryClassifier) {
         this.savedPlanRepository = savedPlanRepository;
         this.userService = userService;
         this.aiService = aiService;
+        this.landmarkRepository = landmarkRepository;
+        this.categoryClassifier = categoryClassifier;
     }
 
     @PostMapping("/save")
@@ -52,15 +66,19 @@ public class SavedPlanController {
         plan.setUserId(user.getId());
         plan.setTitle(request.getTitle());
         plan.setData(request.getData());
+        plan.setCategory(categoryClassifier.classify(request.getData()).name());
         plan.setSavedAt(LocalDateTime.now());
         return ResponseEntity.ok(savedPlanRepository.save(plan));
     }
 
     @GetMapping
-    public ResponseEntity<List<SavedPlan>> myPlans(@AuthenticationPrincipal String email) {
+    public ResponseEntity<List<PlanSummary>> myPlans(@AuthenticationPrincipal String email) {
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return ResponseEntity.ok(savedPlanRepository.findByUserId(user.getId()));
+        List<PlanSummary> plans = savedPlanRepository.findByUserId(user.getId()).stream()
+                .map(PlanSummary::from)
+                .toList();
+        return ResponseEntity.ok(plans);
     }
 
     @PostMapping("/{id}/edit")
@@ -100,6 +118,7 @@ public class SavedPlanController {
         }
 
         plan.setData(reply.getData());
+        plan.setCategory(categoryClassifier.classify(reply.getData()).name());
         plan.setSavedAt(LocalDateTime.now());
         return ResponseEntity.ok(savedPlanRepository.save(plan));
     }
@@ -176,6 +195,112 @@ public class SavedPlanController {
         plan.setStartDate(null);
         plan.setEndDate(null);
         return ResponseEntity.ok(savedPlanRepository.save(plan));
+    }
+
+    @PostMapping("/{id}/places")
+    public ResponseEntity<SavedPlan> addPlace(
+            @AuthenticationPrincipal String email,
+            @PathVariable String id,
+            @RequestBody AddPlaceRequest request) {
+
+        if (request.getPlaceId() == null || request.getPlaceId().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "placeId is required");
+        }
+        if (request.getDayIndex() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "dayIndex is required");
+        }
+
+        SavedPlan plan = requireOwnedPlan(email, id);
+        Landmark place = landmarkRepository.findById(request.getPlaceId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Place not found"));
+
+        List<Map<String, Object>> days = getDays(plan.getData());
+        int dayIndex = request.getDayIndex();
+        if (dayIndex < 0 || dayIndex >= days.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "dayIndex out of range");
+        }
+
+        Map<String, Object> activity = new HashMap<>();
+        activity.put("time", request.getTime() != null ? request.getTime() : "");
+        activity.put("title", place.getName());
+        activity.put("description", place.getSubtitle());
+        activity.put("cost_usd", 0);
+        activity.put("cost_egp", 0);
+        activity.put("lat", place.getLat());
+        activity.put("lng", place.getLng());
+        activity.put("category", "attraction");
+
+        getActivities(days.get(dayIndex)).add(activity);
+        return ResponseEntity.ok(savedPlanRepository.save(plan));
+    }
+
+    @DeleteMapping("/{id}/places")
+    public ResponseEntity<SavedPlan> deletePlace(
+            @AuthenticationPrincipal String email,
+            @PathVariable String id,
+            @RequestBody DeletePlaceRequest request) {
+
+        if (request.getDayIndex() == null || request.getActivityIndex() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "dayIndex and activityIndex are required");
+        }
+
+        SavedPlan plan = requireOwnedPlan(email, id);
+        List<Map<String, Object>> days = getDays(plan.getData());
+        int dayIndex = request.getDayIndex();
+        if (dayIndex < 0 || dayIndex >= days.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "dayIndex out of range");
+        }
+
+        Map<String, Object> day = days.get(dayIndex);
+        List<Map<String, Object>> activities = getActivities(day);
+        int activityIndex = request.getActivityIndex();
+        if (activityIndex < 0 || activityIndex >= activities.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "activityIndex out of range");
+        }
+
+        Map<String, Object> removed = activities.remove(activityIndex);
+        day.put("total_cost_usd", asDouble(day.get("total_cost_usd")) - asDouble(removed.get("cost_usd")));
+        day.put("total_cost_egp", asDouble(day.get("total_cost_egp")) - asDouble(removed.get("cost_egp")));
+
+        return ResponseEntity.ok(savedPlanRepository.save(plan));
+    }
+
+    private SavedPlan requireOwnedPlan(String email, String id) {
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        SavedPlan plan = savedPlanRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+        if (!user.getId().equals(plan.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your plan");
+        }
+        return plan;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getDays(Object data) {
+        if (!(data instanceof Map<?, ?> map)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Plan has no data");
+        }
+        Object days = ((Map<String, Object>) map).get("days");
+        if (!(days instanceof List<?>)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Plan has no days");
+        }
+        return (List<Map<String, Object>>) days;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getActivities(Map<String, Object> day) {
+        Object activities = day.get("activities");
+        if (activities instanceof List<?>) {
+            return (List<Map<String, Object>>) activities;
+        }
+        List<Map<String, Object>> created = new ArrayList<>();
+        day.put("activities", created);
+        return created;
+    }
+
+    private double asDouble(Object value) {
+        return value instanceof Number n ? n.doubleValue() : 0.0;
     }
 
     @SuppressWarnings("unchecked")

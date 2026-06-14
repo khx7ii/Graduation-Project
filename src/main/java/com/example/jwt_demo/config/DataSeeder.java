@@ -34,21 +34,21 @@ public class DataSeeder {
             if (plans.count() == 0) {
                 log.info("Seeding suggested_plans collection...");
                 plans.saveAll(List.of(
-                        plan("Nile Cruise Adventure", "5 days from Aswan to Luxor", "https://images.unsplash.com/photo-1593696954577-ab3d39317b97",
+                        plan("Nile Cruise Adventure", "5 days from Aswan to Luxor", "https://images.unsplash.com/photo-1593696954577-ab3d39317b97", "NILE_CRUISE",
                                 samplePlan("Nile Cruise Adventure", List.of(
                                         sampleDay(180, 8820, List.of(
                                                 sampleActivity("08:00 AM", "Aswan High Dam", "Engineering marvel with panoramic Nile views", 10, 490, 23.9707, 32.8770, "attraction"),
                                                 sampleActivity("01:00 PM", "Philae Temple", "Island temple dedicated to Isis", 15, 735, 24.0254, 32.8842, "attraction")
                                         ))
                                 ))),
-                        plan("Cairo Weekend Escape", "2 days exploring the capital", "https://images.unsplash.com/photo-1572252009286-268acec5ca0a",
+                        plan("Cairo Weekend Escape", "2 days exploring the capital", "https://images.unsplash.com/photo-1572252009286-268acec5ca0a", "CITY",
                                 samplePlan("Cairo Weekend Escape", List.of(
                                         sampleDay(95, 4655, List.of(
                                                 sampleActivity("09:00 AM", "Pyramids of Giza", "Ancient wonder of the world", 20, 980, 29.9792, 31.1342, "attraction"),
                                                 sampleActivity("02:00 PM", "Khan el-Khalili", "Historic bazaar with crafts and food", 25, 1225, 30.0477, 31.2622, "shopping")
                                         ))
                                 ))),
-                        plan("Red Sea Diving Trip", "4 days in Hurghada", "https://images.unsplash.com/photo-1582967788606-a171c1080cb0",
+                        plan("Red Sea Diving Trip", "4 days in Hurghada", "https://images.unsplash.com/photo-1582967788606-a171c1080cb0", "BEACH",
                                 samplePlan("Red Sea Diving Trip", List.of(
                                         sampleDay(220, 10780, List.of(
                                                 sampleActivity("07:00 AM", "Giftun Island Snorkeling", "Coral reefs and tropical fish", 60, 2940, 27.1869, 33.9305, "experience")
@@ -69,11 +69,12 @@ public class DataSeeder {
         return l;
     }
 
-    private static SuggestedPlan plan(String name, String subtitle, String imageUrl, java.util.Map<String, Object> data) {
+    private static SuggestedPlan plan(String name, String subtitle, String imageUrl, String category, java.util.Map<String, Object> data) {
         SuggestedPlan p = new SuggestedPlan();
         p.setName(name);
         p.setSubtitle(subtitle);
         p.setImageUrl(imageUrl);
+        p.setCategory(category);
         p.setData(data);
         return p;
     }

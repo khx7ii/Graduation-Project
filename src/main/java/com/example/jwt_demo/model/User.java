@@ -5,6 +5,9 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 @Setter
 @Getter
@@ -19,6 +22,7 @@ public class User {
     private String password;
     private String userImage;
     private String bio;
+    private Set<String> favoritePlanIds = new HashSet<>();
 
     public User() {}
 

@@ -14,5 +14,6 @@ public class SuggestedPlan {
     private String name;
     private String subtitle;
     private String imageUrl;
+    private String category;
     private Object data;
 }

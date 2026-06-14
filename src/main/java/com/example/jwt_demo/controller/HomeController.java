@@ -2,6 +2,7 @@ package com.example.jwt_demo.controller;
 
 import com.example.jwt_demo.dto.SuggestedPlanCard;
 import com.example.jwt_demo.model.Landmark;
+import com.example.jwt_demo.model.PlanCategory;
 import com.example.jwt_demo.model.SuggestedPlan;
 import com.example.jwt_demo.repository.LandmarkRepository;
 import com.example.jwt_demo.repository.SuggestedPlanRepository;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -46,5 +48,25 @@ public class HomeController {
         SuggestedPlan plan = suggestedPlanRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
         return ResponseEntity.ok(plan);
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<Map<String, String>>> categories() {
+        List<Map<String, String>> categories = Arrays.stream(PlanCategory.values())
+                .map(c -> Map.of("id", c.name(), "label", c.getLabel()))
+                .toList();
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/plans/{category}")
+    public ResponseEntity<List<SuggestedPlanCard>> plansByCategory(@PathVariable String category) {
+        PlanCategory parsed = PlanCategory.fromId(category);
+        if (parsed == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown category: " + category);
+        }
+        List<SuggestedPlanCard> cards = suggestedPlanRepository.findByCategory(parsed.name()).stream()
+                .map(SuggestedPlanCard::from)
+                .toList();
+        return ResponseEntity.ok(cards);
     }
 }
