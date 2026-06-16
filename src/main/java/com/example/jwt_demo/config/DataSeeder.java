@@ -24,11 +24,61 @@ public class DataSeeder {
             if (landmarks.count() == 0) {
                 log.info("Seeding landmarks collection...");
                 landmarks.saveAll(List.of(
-                        landmark("Pyramids of Giza", "The last surviving ancient wonder", "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e", 29.9792, 31.1342),
-                        landmark("Luxor Temple", "Heart of ancient Thebes", "https://images.unsplash.com/photo-1572252009286-268acec5ca0a", 25.6995, 32.6391),
-                        landmark("Abu Simbel", "Ramses II's rock-cut masterpiece", "https://images.unsplash.com/photo-1568322445389-f64ac2515020", 22.3372, 31.6258),
-                        landmark("Khan el-Khalili", "Cairo's centuries-old bazaar", "https://images.unsplash.com/photo-1571331044905-bbc3a648c2dc", 30.0477, 31.2622),
-                        landmark("Siwa Oasis", "Desert springs and salt lakes", "https://images.unsplash.com/photo-1539635278303-d4002c07eae3", 29.2032, 25.5197)
+                        landmark("giz_001", "Pyramids of Giza", "The last surviving ancient wonder",
+                                "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e",
+                                29.9792, 31.1342,
+                                "Giza, Egypt", 4.9, 5240, "Ancient Wonder",
+                                "Oct - Apr", "540 EGP", "3-4 Hours",
+                                "The Pyramids of Giza are the most iconic monuments of ancient Egypt, built over 4,500 years ago as tombs for the pharaohs Khufu, Khafre, and Menkaure. Standing on the Giza Plateau alongside the Great Sphinx, they remain the only surviving wonder of the ancient world.",
+                                List.of(
+                                        "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e",
+                                        "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368",
+                                        "https://images.unsplash.com/photo-1568322445389-f64ac2515020"
+                                )),
+                        landmark("lux_001", "Luxor Temple", "Heart of ancient Thebes",
+                                "https://images.unsplash.com/photo-1572252009286-268acec5ca0a",
+                                25.6995, 32.6391,
+                                "Upper Egypt", 4.8, 1280, "Ancient Temple",
+                                "Oct - Apr", "300 EGP", "2-3 Hours",
+                                "Luxor Temple is a large Ancient Egyptian temple complex on the east bank of the Nile, founded in 1400 BCE. Unlike most temples, it was not dedicated to a cult god but to the rejuvenation of kingship. Its illuminated colonnades and obelisk make it especially striking after sunset.",
+                                List.of(
+                                        "https://images.unsplash.com/photo-1572252009286-268acec5ca0a",
+                                        "https://images.unsplash.com/photo-1518998053901-5348d3961a04",
+                                        "https://images.unsplash.com/photo-1564507592333-c60657eea523"
+                                )),
+                        landmark("abs_001", "Abu Simbel", "Ramses II's rock-cut masterpiece",
+                                "https://images.unsplash.com/photo-1568322445389-f64ac2515020",
+                                22.3372, 31.6258,
+                                "Aswan Governorate", 4.9, 980, "Rock Temple",
+                                "Nov - Mar", "400 EGP", "2 Hours",
+                                "Abu Simbel is a pair of massive rock-cut temples carved into the mountainside by Pharaoh Ramses II in the 13th century BCE. The temples were relocated in their entirety during the 1960s to save them from rising waters of Lake Nasser, an engineering feat as remarkable as the monuments themselves.",
+                                List.of(
+                                        "https://images.unsplash.com/photo-1568322445389-f64ac2515020",
+                                        "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e",
+                                        "https://images.unsplash.com/photo-1572252009286-268acec5ca0a"
+                                )),
+                        landmark("kek_001", "Khan el-Khalili", "Cairo's centuries-old bazaar",
+                                "https://images.unsplash.com/photo-1571331044905-bbc3a648c2dc",
+                                30.0477, 31.2622,
+                                "Old Cairo", 4.6, 3120, "Historic Bazaar",
+                                "All Year", "Free", "2-4 Hours",
+                                "Khan el-Khalili is a famous bazaar and souq in the historic center of Cairo, dating back to the 14th century. Its narrow alleys are filled with vendors selling spices, jewelry, lanterns, and Egyptian crafts, alongside traditional coffeehouses popular with locals and visitors alike.",
+                                List.of(
+                                        "https://images.unsplash.com/photo-1571331044905-bbc3a648c2dc",
+                                        "https://images.unsplash.com/photo-1572252009286-268acec5ca0a",
+                                        "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e"
+                                )),
+                        landmark("siw_001", "Siwa Oasis", "Desert springs and salt lakes",
+                                "https://images.unsplash.com/photo-1539635278303-d4002c07eae3",
+                                29.2032, 25.5197,
+                                "Western Desert", 4.7, 640, "Natural Oasis",
+                                "Oct - Mar", "Free", "Full Day",
+                                "Siwa Oasis is an isolated settlement in Egypt's Western Desert, known for its freshwater springs, salt lakes, and ancient Berber culture. Highlights include the ruins of the Oracle Temple where Alexander the Great was declared a son of Amun, and the dramatic Great Sand Sea nearby.",
+                                List.of(
+                                        "https://images.unsplash.com/photo-1539635278303-d4002c07eae3",
+                                        "https://images.unsplash.com/photo-1568322445389-f64ac2515020",
+                                        "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368"
+                                ))
                 ));
             }
             if (plans.count() == 0) {
@@ -59,13 +109,27 @@ public class DataSeeder {
         };
     }
 
-    private static Landmark landmark(String name, String subtitle, String imageUrl, double lat, double lng) {
+    private static Landmark landmark(String id, String name, String subtitle, String imageUrl,
+                                     double lat, double lng,
+                                     String location, double rating, int reviewCount, String category,
+                                     String bestTimeToVisit, String entryFee, String durationHours,
+                                     String description, List<String> gallery) {
         Landmark l = new Landmark();
+        l.setId(id);
         l.setName(name);
         l.setSubtitle(subtitle);
         l.setImageUrl(imageUrl);
         l.setLat(lat);
         l.setLng(lng);
+        l.setLocation(location);
+        l.setRating(rating);
+        l.setReviewCount(reviewCount);
+        l.setCategory(category);
+        l.setBestTimeToVisit(bestTimeToVisit);
+        l.setEntryFee(entryFee);
+        l.setDurationHours(durationHours);
+        l.setDescription(description);
+        l.setGallery(gallery);
         return l;
     }
 

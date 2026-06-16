@@ -23,6 +23,7 @@ public class User {
     private String userImage;
     private String bio;
     private Set<String> favoritePlanIds = new HashSet<>();
+    private Set<String> favoriteLandmarkIds = new HashSet<>();
 
     public User() {}
 
